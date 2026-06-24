@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浙江省中考分数查询系统</title>
+    <style>
+        /* 重置基础样式 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #e0f7fa; /* 淡蓝色背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* 16:9 比例的主容器 - 整体缩小并调整间距 */
+        .container {
+            width: 60vw; /* 从80vw缩小到60vw */
+            max-width: 650px; /* 限制最大宽度 */
+            aspect-ratio: 16 / 9;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px 30px 15px 30px; /* 缩小内边距 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* 让内容撑开上下 */
+            align-items: center;
+            position: relative;
+        }
+
+        /* 标题样式 - 改为白色且倾斜 */
+        h1 {
+            color: #ffffff; /* 改为白色 */
+            font-style: italic; /* 字体倾斜 */
+            text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.2); /* 增加轻微阴影提升可读性 */
+            margin-bottom: 20px;
+            font-size: 1.8rem; /* 稍微缩小字体 */
+            letter-spacing: 3px;
+        }
+
+        /* 登录界面样式 */
+        #login-section {
+            width: 80%; /* 输入框占整体比例 */
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* 输入框间距缩小 */
+            flex: 1;
+            justify-content: center;
+        }
+
+        .input-group {
+            width: 100%;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 15px; /* 减少输入框内边距 */
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            outline: none;
+            font-size: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            border-color: #00acc1;
+            box-shadow: 0 0 5px rgba(0, 172, 193, 0.3);
+            background: #ffffff;
+        }
+
+        /* 验证码区域 */
+        .captcha-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .captcha-row input {
+            flex: 1;
+        }
+
+        .captcha-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 模拟验证码图片样式 */
+        #captcha-image {
+            width: 110px; /* 宽度缩小 */
+            height: 40px; /* 高度缩小 */
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #fff;
+        }
+
+        .refresh-link {
+            margin-top: 4px;
+            color: #1976d2;
+            font-size: 12px; /* 字体缩小 */
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .refresh-link:hover {
+            color: #0d47a1;
+        }
+
+        /* 登录按钮 */
+        #login-btn {
+            width: 100%;
+            padding: 10px; /* 按钮变小 */
+            background-color: #00b0ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px; /* 字体缩小 */
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        #login-btn:hover {
+            background-color: #0091ea;
+        }
+
+        /* 登录后界面样式（默认隐藏） */
+        #main-section {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .main-header h1 {
+            margin: 0;
+        }
+
+        #logout-btn {
+            padding: 6px 16px; /* 按钮变小 */
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px; /* 字体缩小 */
+        }
+
+        #logout-btn:hover {
+            background-color: #1565c0;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.5rem; /* 稍作缩小 */
+            font-weight: bold;
+            color: #0277bd;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 备案号样式 - 增加前置文字 */
+        .icp-text {
+            text-align: center;
+            color: #999;
+            font-size: 11px; /* 备案号更小一点 */
+            padding-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* 飘窗样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            padding: 12px 24px; /* 飘窗变小 */
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border-left: 5px solid #ff5252;
+            font-size: 16px; /* 字体变小 */
+            font-weight: bold;
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            transform: translateX(-50%) translateY(-20px);
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .toast.success {
+            border-left-color: #4caf50;
+        }
+
+        /* 手机端适配 */
+        @media (max-width: 600px) {
+            .container {
+                width: 90vw; /* 手机端自适应调整 */
+                padding: 20px 15px 15px 15px;
+            }
+            #login-section {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 提示飘窗 -->
+    <div id="toast-message" class="toast"></div>
+
+    <div class="container">
+        <!-- 登录界面 -->
+        <div id="login-section">
+            <h1>浙江省中考分数查询系统</h1>
+            
+            <div class="input-group">
+                <input type="text" id="username" placeholder="用户名">
+            </div>
+            
+            <div class="input-group">
+                <input type="password" id="password" placeholder="密码">
+            </div>
+            
+            <div class="input-group captcha-row">
+                <input type="text" id="captcha-input" placeholder="验证码">
+                <div class="captcha-box">
+                    <!-- 验证码图片 -->
+                    <canvas id="captcha-image" width="110" height="40"></canvas>
+                    <span class="refresh-link" onclick="drawCaptcha()">看不清？换一张</span>
+                </div>
+            </div>
+
+            <button id="login-btn" onclick="handleLogin()">登录</button>
+        </div>
+
+        <!-- 登录后界面 -->
+        <div id="main-section">
+            <div class="main-header">
+                <h1>浙江省中考分数查询系统</h1>
+                <button id="logout-btn" onclick="handleLogout()">重新登录</button>
+            </div>
+            <div class="main-content">
+                少羽NB
+            </div>
+        </div>
+
+        <!-- 备案号 (放在两个界面最底部，加上前置文字) -->
+        <div class="icp-text">备案号：浙A.1145639790</div>
+    </div>
+
+    <script>
+        // 预设验证码
+        let currentCaptcha = "35872";
+
+        // 绘制验证码图片 (模拟您提供的图片)
+        function drawCaptcha() {
+            const canvas = document.getElementById('captcha-image');
+            const ctx = canvas.getContext('2d');
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 红色横线
+            ctx.beginPath();
+            ctx.moveTo(0, 18);
+            ctx.lineTo(canvas.width, 20);
+            ctx.strokeStyle = '#e53935'; 
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 数字和圆圈
+            const text = currentCaptcha;
+            const colors = ['#009688', '#2196f3', '#00bcd4', '#795548', '#1976d2']; 
+            const xPositions = [8, 30, 52, 74, 96]; // 根据画布宽度调整位置
+            
+            ctx.textBaseline = 'middle';
+            
+            for(let i = 0; i < text.length; i++) {
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.font = 'bold 28px Arial'; // 字体大小调小适配更小的画布
+                ctx.fillText(text[i], xPositions[i], 22);
+                
+                ctx.beginPath();
+                if (i === 0) { 
+                    ctx.arc(xPositions[0] + 14, 2, 4, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#2196f3';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else if (i === 1) { 
+                    ctx.arc(xPositions[1] + 12, 2, 4, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // 显示飘窗
+        function showToast(message, isSuccess = false) {
+            const toast = document.getElementById('toast-message');
+            toast.textContent = message;
+            toast.className = 'toast';
+            if (isSuccess) {
+                toast.classList.add('success');
+            }
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 处理登录
+        function handleLogin() {
+            const userInput = document.getElementById('captcha-input').value.trim();
+            const username = document.getElementById('username').value.trim();
+
+            if (userInput !== currentCaptcha) {
+                showToast('验证码错误，请重新输入', false);
+                return;
+            }
+
+            if (!username) {
+                showToast('请输入用户名', false);
+                return;
+            }
+
+            // 登录成功
+            showToast(`登录成功，${username}`, true);
+            
+            setTimeout(() => {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('main-section').style.display = 'flex';
+            }, 1000);
+        }
+
+        // 处理重新登录
+        function handleLogout() {
+            document.getElementById('main-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('captcha-input').value = '';
+            drawCaptcha();
+        }
+
+        window.onload = function() {
+            drawCaptcha();
+        };
+    </script>
+</body>
+</html>
